@@ -83,7 +83,7 @@ namespace Google_Drive
 
 		#endregion
 
-		#region Files and folder
+		#region Folder
 		
 		public void ListFilesandFodlers()
 		{
@@ -105,7 +105,50 @@ namespace Google_Drive
 				Debug.WriteLine($"{result.Name} | {result.Id}");
 			}
 		}
-		
+
+		private void btnCreateFolder_Click(object sender, EventArgs e)
+		{
+			if (Service.ApplicationName != AppName)
+			{
+				CreateService();
+			}
+			var vfolder = new File();
+			vfolder.Name = inputCreateDeleteFolder.Text;
+			vfolder.MimeType = "application/vnd.google-apps.folder";
+
+			var reqSetup = Service.Files.Create(vfolder);
+			reqSetup.Fields = "id";
+
+			var reqExe = reqSetup.Execute();
+			Debug.WriteLine(reqExe.Id);
+			MessageBox.Show("Create folder successed");
+		}
+
+		public void CreateNewSubFolder(String subFolderName, String parentFolderId)
+		{
+			if (Service.ApplicationName != AppName)
+			{
+				CreateService();
+			}
+			var vfolder = new File();
+			vfolder.Name = subFolderName;
+			vfolder.MimeType = "application/vnd.google-apps.folder";
+			vfolder.Parents = new List<string> { parentFolderId };
+
+			var reqSetup = Service.Files.Create(vfolder);
+			reqSetup.Fields = "id";
+
+			var reqExe = reqSetup.Execute();
+			Debug.WriteLine(reqExe.Id);
+			MessageBox.Show("Create folder successed!");
+		}
+
+		private void btnCreateSFolder_Click(object sender, EventArgs e)
+		{
+			CreateNewSubFolder(inputCreateDeleteFolder.Text, inputFolderId.Text);
+		}
+
+
 		#endregion
 
 
