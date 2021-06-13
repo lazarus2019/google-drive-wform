@@ -83,7 +83,7 @@ namespace Google_Drive
 
 		#endregion
 
-		#region Folder
+		#region Get and create folder
 		
 		public void ListFilesandFodlers()
 		{
@@ -151,6 +151,129 @@ namespace Google_Drive
 
 		#endregion
 
+		#region Upload files
 
+		private void btnUpload_Click(object sender, EventArgs e)
+		{
+			if (Service.ApplicationName != AppName)
+			{
+				CreateService();
+			}
+			int fileUploadC = 0;
+			if (this.listFilePathUpload.Count() > 0)
+			{
+				lbUpload.Text = $"{fileUploadC}/{this.listFilePathUpload.Count()} Uploading...";
+				this.Cursor = Cursors.WaitCursor;
+				foreach (var path in this.listFilePathUpload)
+				{
+					String filePath = path;
+					if (!String.IsNullOrEmpty(filePath))
+					{
+						var vfile = new File();
+						vfile.Name = filePath.Split('\\').Last();
+
+						var extension = GetExtensionFile(filePath);
+
+						//var byteArr = System.IO.File.ReadAllBytes(filePath);
+						var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Open);
+						FilesResource.CreateMediaUpload UploadReq = Service.Files.Create(vfile, stream, extension);
+						UploadReq.Upload();
+						try
+						{
+							var file = UploadReq.ResponseBody;
+							Debug.WriteLine($"{file.Name} | {file.Id} | {file.CreatedTime}");
+						}
+						catch
+						{
+							MessageBox.Show("Can not upload file to google drive!", "Upload error", MessageBoxButtons.OK);
+							this.Cursor = Cursors.Default;
+						}
+						fileUploadC++;
+						lbUpload.Text = $"{fileUploadC}/{this.listFilePathUpload.Count()} Uploading...";
+						progressBar.Value++;
+						if (fileUploadC == this.listFilePathUpload.Count())
+						{
+							MessageBox.Show("Upload Successed");
+							ResetUploadFunc();
+							this.Cursor = Cursors.Default;
+						}
+					}
+					else
+					{
+						MessageBox.Show("One of your file doesn't exist or direction go wrong!", "Upload error", MessageBoxButtons.OK);
+						this.Cursor = Cursors.Default;
+					}
+				}
+			}
+			else
+			{
+				MessageBox.Show("You have to upload at least one file!", "Upload error", MessageBoxButtons.OK);
+			}
+		}
+
+		public void ResetUploadFunc()
+		{
+			this.listFilePathUpload = new List<string>();
+			progressBar.Value = 0;
+		}
+
+		private void btnBrowser_Click(object sender, EventArgs e)
+		{
+			var fileDialog = new OpenFileDialog();
+			fileDialog.InitialDirectory = "C:\\Users\\mmofo\\OneDrive - ASHA DEVI POLYTECHNIC COLLEGE\\Desktop";
+			fileDialog.Multiselect = true;
+			if (fileDialog.ShowDialog() == DialogResult.OK)
+			{
+				var filePaths = fileDialog.FileNames;
+				foreach (var path in filePaths)
+				{
+					this.listFilePathUpload.Add(path);
+				}
+				progressBar.Maximum = this.listFilePathUpload.Count();
+				progressBar.Step = 1;
+			}
+		}
+
+		public string GetExtensionFile(String fileFullName)
+		{
+			var extension = fileFullName.Split('.').Last().ToLower();
+			// Audio, Compressed, Disc and media, Data and database, E-mail, Executable, Font, Image, Internet-related, Presentation, Programming, Spreadsheet, System, Video, Word processor and text.
+			String[] videoType = { "3gp", "avi", "flv", "h264", "m4v", "mkv", "mov", "mp4", "mpg", "mpeg", "rm", "swf", "vob", "wmv" };
+			String[] wordType = { "doc", "docx", "odt", "wpd" };
+			String[] textType = { "txt", "tex", "rtf" };
+			String[] pdfType = { "pdf" };
+			String[] audioType = { "mp3", "mpa", "ogg", "wav", "wma", "wpl" };
+			String[] applicationType = { };
+			String[] imageType = { "png", "jpeg", "jpg", "gif", "bmp", "svg", "tif", "tiff" };
+			String[] spreadsheetType = { "xls", "xlsm", "xlsx" };
+			String[] programType = { "c", "cgi", "pl", "class", "cpp", "cs", "h", "java", "php", "py", "sh", "swift", "vb" };
+			String[] compressType = { "7z", "arj", "pkg", "rar", "rpm", "tar.gz", "z", "zip" };
+
+
+			if (videoType.Contains(extension))
+			{
+				return "video/*";
+			}
+			else if (textType.Contains(extension) || programType.Contains(extension))
+			{
+				return "text/plain";
+			}
+			else if (audioType.Contains(extension))
+			{
+				return "audio/*";
+			}
+			else if (imageType.Contains(extension))
+			{
+				return "image/*";
+			}
+			else if (pdfType.Contains(extension))
+			{
+				return "application/pdf";
+			}
+
+			return "application/*";
+		}
+
+		#endregion
 	}
 }
