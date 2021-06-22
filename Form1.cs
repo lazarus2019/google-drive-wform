@@ -15,6 +15,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Google.Apis.Download;
 using System.Diagnostics;
+using Google_Drive.Helpers;
 
 namespace Google_Drive
 {
@@ -162,6 +163,7 @@ namespace Google_Drive
 			int fileUploadC = 0;
 			if (this.listFilePathUpload.Count() > 0)
 			{
+				var helperExtension = new MimeTypeLookup();
 				lbUpload.Text = $"{fileUploadC}/{this.listFilePathUpload.Count()} Uploading...";
 				this.Cursor = Cursors.WaitCursor;
 				foreach (var path in this.listFilePathUpload)
@@ -172,7 +174,8 @@ namespace Google_Drive
 						var vfile = new File();
 						vfile.Name = filePath.Split('\\').Last();
 
-						var extension = GetExtensionFile(filePath);
+						//var extension = GetExtensionFile(filePath);
+						var extension = helperExtension.GetMimeType(vfile.Name);
 
 						//var byteArr = System.IO.File.ReadAllBytes(filePath);
 						var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Open);
